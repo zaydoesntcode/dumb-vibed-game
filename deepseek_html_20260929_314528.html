@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE HOUSE OF MIRRORS · psychological adventure</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0b0a0c;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    padding: 1.5rem;
+    overflow-x: hidden;
+  }
+
+  .game-wrapper {
+    max-width: 850px;
+    width: 100%;
+    background: #111013;
+    border-radius: 2.5rem;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.95), 0 0 0 2px #2a2530 inset, 0 0 40px #3e2b4b;
+    overflow: hidden;
+    position: relative;
+    transition: box-shadow 0.8s ease;
+  }
+
+  .atmosphere {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 30% 40%, rgba(120,80,150,0.12), transparent 60%),
+                radial-gradient(circle at 80% 70%, rgba(40,60,120,0.18), transparent 70%);
+    z-index: 2;
+    mix-blend-mode: overlay;
+    transition: background 1.5s ease;
+  }
+
+  .graphic-panel {
+    height: 220px;
+    background: #0e0b0e;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid #2e2633;
+    transition: background 1.2s ease;
+  }
+
+  .graphic-panel .overlay-texture {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 6px);
+    mix-blend-mode: overlay;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  .art-layer {
+    position: absolute;
+    inset: 0;
+    transition: opacity 1.4s ease, background 1.4s ease, filter 1.4s ease;
+    z-index: 1;
+  }
+
+  .layer1 {
+    background: radial-gradient(circle at 30% 30%, #6a4f7a, #1d1722 80%);
+    opacity: 0.9;
+  }
+  .layer2 {
+    background: conic-gradient(from 90deg at 70% 60%, #131013, #2b1b2e, #131013);
+    mix-blend-mode: overlay;
+    opacity: 0.7;
+    z-index: 2;
+  }
+  .layer3 {
+    background: repeating-linear-gradient(130deg, rgba(180,140,200,0.08) 0px, rgba(180,140,200,0.08) 15px, transparent 15px, transparent 30px);
+    opacity: 0.5;
+    filter: blur(2px);
+    z-index: 3;
+  }
+
+  .ghost-light {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(200,180,230,0.28) 0%, transparent 70%);
+    border-radius: 50%;
+    top: 15%;
+    left: 55%;
+    filter: blur(20px);
+    animation: drift 20s infinite alternate ease-in-out;
+    opacity: 0.6;
+    mix-blend-mode: screen;
+    transition: background 1.5s ease, opacity 1.5s ease;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  @keyframes drift {
+    0%   { transform: translate(-15%, -8%) scale(1); opacity: 0.35; }
+    50%  { transform: translate(10%, 5%) scale(1.4); opacity: 0.65; }
+    100% { transform: translate(35%, 22%) scale(1.9); opacity: 0.85; }
+  }
+
+  .content-box {
+    padding: 2rem 2.2rem 1.8rem;
+    background: #0d0b0f;
+    position: relative;
+    z-index: 5;
+    border-top: 1px solid #2f2638;
+  }
+
+  .scene-label {
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: #5c4a70;
+    text-transform: uppercase;
+    margin-bottom: 0.7rem;
+    font-weight: 600;
+    opacity: 0.75;
+  }
+
+  .dialogue {
+    font-size: 1.12rem;
+    line-height: 1.65;
+    color: #ddd6e8;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+    letter-spacing: 0.3px;
+    margin-bottom: 1.8rem;
+    min-height: 5rem;
+    font-weight: 350;
+    transition: color 0.4s;
+    border-left: 3px solid #6a4f7a;
+    padding-left: 1.2rem;
+    transition: border-color 0.8s ease;
+  }
+
+  .dialogue em {
+    color: #c3aede;
+    font-style: italic;
+    text-shadow: 0 0 10px rgba(138,107,176,0.6);
+  }
+
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+  }
+
+  .choice-btn {
+    background: #1c1722;
+    border: 1px solid #3d2e4b;
+    color: #d9cee6;
+    padding: 1rem 1.5rem;
+    border-radius: 3rem;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.4px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 5px 0 #0a070b;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: inherit;
+    animation: fadeUp 0.5s ease backwards;
+  }
+
+  .choice-btn:nth-child(1) { animation-delay: 0.05s; }
+  .choice-btn:nth-child(2) { animation-delay: 0.15s; }
+  .choice-btn:nth-child(3) { animation-delay: 0.25s; }
+  .choice-btn:nth-child(4) { animation-delay: 0.35s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .choice-btn:hover {
+    background: #2b2133;
+    border-color: #8e71b0;
+    color: #f0e7ff;
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 #0a070b, 0 0 20px #663f8a;
+  }
+
+  .choice-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #0a070b;
+  }
+
+  .choice-btn::before {
+    content: "◈";
+    color: #b593dd;
+    font-size: 1.1rem;
+    opacity: 0.8;
+    transition: transform 0.3s, color 0.3s;
+    flex-shrink: 0;
+  }
+
+  .choice-btn:hover::before {
+    transform: scale(1.4) rotate(90deg);
+    color: #dbbdff;
+  }
+
+  .ending-badge {
+    display: inline-block;
+    background: #2a1e30;
+    border: 1px solid #9a7ab8;
+    color: #e3d2fd;
+    padding: 0.5rem 1.4rem;
+    border-radius: 40px;
+    font-size: 0.78rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    font-weight: 700;
+    box-shadow: 0 0 20px #562e6b;
+    animation: badgeGlow 2.5s ease-in-out infinite alternate;
+  }
+
+  @keyframes badgeGlow {
+    from { box-shadow: 0 0 15px #562e6b; }
+    to   { box-shadow: 0 0 30px #8b4fb0, 0 0 50px #562e6b; }
+  }
+
+  .restart-btn {
+    background: transparent;
+    border: 1px solid #5c4870;
+    color: #b9a6d0;
+    padding: 0.85rem 2rem;
+    border-radius: 3rem;
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+    margin-top: 1.4rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+  }
+
+  .restart-btn:hover {
+    background: #2f2438;
+    border-color: #b28ae0;
+    color: #f0e2ff;
+    box-shadow: 0 0 28px #6d4b8b;
+    transform: translateY(-2px);
+  }
+
+  .footer-note {
+    margin-top: 1.2rem;
+    font-size: 0.68rem;
+    color: #4b3b57;
+    text-align: right;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* --- MOOD-BASED GRAPHICS --- */
+  .graphic-panel[data-mood="cold"] .layer1 {
+    background: radial-gradient(circle at 20% 40%, #2f3a4b, #0c0e13 80%);
+  }
+  .graphic-panel[data-mood="cold"] .ghost-light {
+    background: radial-gradient(circle, #b0c8e0 0%, transparent 70%);
+    opacity: 0.4;
+  }
+  .graphic-panel[data-mood="cold"] .layer2 {
+    background: conic-gradient(from 0deg at 30% 70%, #0b141e, #1f2b3a, #0b141e);
+  }
+  .graphic-panel[data-mood="cold"] + .content-box .dialogue {
+    border-color: #4a6a8a;
+  }
+
+  .graphic-panel[data-mood="warm"] .layer1 {
+    background: radial-gradient(circle at 70% 30%, #7a5a4a, #1e1512 80%);
+  }
+  .graphic-panel[data-mood="warm"] .ghost-light {
+    background: radial-gradient(circle, #e0b89a 0%, transparent 70%);
+    opacity: 0.75;
+  }
+  .graphic-panel[data-mood="warm"] .layer2 {
+    background: conic-gradient(from 45deg at 60% 40%, #2a1a12, #4a2a1a, #2a1a12);
+  }
+  .graphic-panel[data-mood="warm"] + .content-box .dialogue {
+    border-color: #b08a6a;
+  }
+
+  .graphic-panel[data-mood="fractured"] .layer1 {
+    background: radial-gradient(circle at 40% 60%, #563e5e, #1a111c 80%);
+  }
+  .graphic-panel[data-mood="fractured"] .layer3 {
+    opacity: 0.95;
+    filter: blur(0px);
+    background: repeating-linear-gradient(45deg,
+      rgba(200,100,200,0.18) 0px,
+      rgba(200,100,200,0.18) 6px,
+      transparent 6px,
+      transparent 14px);
+  }
+  .graphic-panel[data-mood="fractured"] .ghost-light {
+    background: radial-gradient(circle, #d8a0e0 0%, transparent 70%);
+  }
+  .graphic-panel[data-mood="fractured"] + .content-box .dialogue {
+    border-color: #a06ab0;
+  }
+
+  .graphic-panel[data-mood="void"] .layer1 {
+    background: radial-gradient(circle at 50% 50%, #0a0a0a, #000000 100%);
+    opacity: 1;
+  }
+  .graphic-panel[data-mood="void"] .ghost-light {
+    opacity: 0.15;
+    background: radial-gradient(circle, #a080b0 0%, transparent 70%);
+  }
+  .graphic-panel[data-mood="void"] .layer2 {
+    opacity: 0.15;
+  }
+  .graphic-panel[data-mood="void"] .layer3 {
+    opacity: 0.2;
+  }
+  .graphic-panel[data-mood="void"] + .content-box .dialogue {
+    border-color: #2a1a30;
+    color: #a89ab0;
+  }
+
+  @media (max-width: 600px) {
+    .content-box { padding: 1.5rem 1.3rem; }
+    .dialogue { font-size: 1rem; }
+    .choice-btn { padding: 0.85rem 1.1rem; font-size: 0.92rem; }
+    .graphic-panel { height: 170px; }
+  }
+</style>
+</head>
+<body>
+<div class="game-wrapper">
+  <div class="atmosphere"></div>
+
+  <div class="graphic-panel" id="graphicPanel" data-mood="cold">
+    <div class="art-layer layer1"></div>
+    <div class="art-layer layer2"></div>
+    <div class="art-layer layer3"></div>
+    <div class="ghost-light"></div>
+    <div class="overlay-texture"></div>
+  </div>
+
+  <div class="content-box">
+    <div class="scene-label" id="sceneLabel">SCENE · THE COLD ROOM</div>
+    <div id="dialogueText" class="dialogue"></div>
+    <div id="choicesContainer" class="choices"></div>
+    <div id="endingArea" style="display:none;"></div>
+    <div class="footer-note">the house remembers</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ---------- SCENE DATABASE ----------
+  const scenes = {
+    start: {
+      label: 'SCENE · THE COLD ROOM',
+      mood: 'cold',
+      dialogue: `You wake on a cold marble floor. The room has no doors, only a single <em>mirror</em> — but your reflection is missing. A voice whispers: <em>"You were never here."</em>`,
+      choices: [
+        { text: 'Touch the mirror', nextScene: 'mirrorTouch' },
+        { text: 'Search the walls for an exit', nextScene: 'searchWalls' },
+        { text: 'Scream into the silence', nextScene: 'scream' }
+      ]
+    },
+
+    // ---------- PATH 1 : MIRROR ----------
+    mirrorTouch: {
+      label: 'SCENE · RIPPLE',
+      mood: 'fractured',
+      dialogue: `Your fingers graze the glass. It ripples like water. A dozen versions of you stare back — some smiling, some weeping, some <em>screaming without sound</em>. One of them reaches out.`,
+      choices: [
+        { text: 'Take the hand', nextScene: 'takeHand' },
+        { text: 'Shatter the mirror', nextScene: 'shatterMirror' },
+        { text: 'Step back', nextScene: 'stepBack' }
+      ]
+    },
+    takeHand: {
+      label: 'SCENE · INVERTED MEMORY',
+      mood: 'warm',
+      dialogue: `The hand is warm, almost burning. You're pulled through the glass. Suddenly you're in a memory — your own childhood bedroom, but the colours are inverted. A figure sits on the bed. It's you, age 8. "You have to remember," it says.`,
+      choices: [
+        { text: '"Remember what?"', nextScene: 'rememberWhat' },
+        { text: 'Run from the room', nextScene: 'runFromRoom' }
+      ]
+    },
+    rememberWhat: {
+      label: 'SCENE · THE BONE KEY',
+      mood: 'fractured',
+      dialogue: `"The accident. The choice you made. You locked it away." The child holds out a key made of bone. "Take it. Or stay here forever."`,
+      choices: [
+        { text: 'Take the key', nextScene: 'takeKey' },
+        { text: 'Refuse', nextScene: 'refuseKey' }
+      ]
+    },
+    takeKey: {
+      label: 'SCENE · THE MEMORY',
+      mood: 'void',
+      dialogue: `You take the key. The memory floods back — you remember now. The fire. The door you could have opened but didn't. You chose yourself over someone else. The guilt has been your mirror all along.`,
+      choices: [
+        { text: 'Accept the truth', nextScene: 'endingAcceptance' },
+        { text: 'Deny it again', nextScene: 'endingDenial' }
+      ]
+    },
+    refuseKey: {
+      label: 'SCENE · STILLNESS',
+      mood: 'cold',
+      dialogue: `"Then you stay," the child says, and fades. The room dissolves. You are left alone with the mirror, forever on the edge of remembering. The cold never leaves.`,
+      choices: [
+        { text: 'Let the cold take you', nextScene: 'endingStasis' }
+      ]
+    },
+    shatterMirror: {
+      label: 'SCENE · THE SHARDS',
+      mood: 'fractured',
+      dialogue: `You punch the glass. It shatters but doesn't fall — the shards hover, each reflecting a different version of your life. One shard shows you happy. Another shows you dead. A third shows a stranger with your face.`,
+      choices: [
+        { text: 'Grab the happy shard', nextScene: 'grabHappy' },
+        { text: 'Grab the dark shard', nextScene: 'grabDark' }
+      ]
+    },
+    grabHappy: {
+      label: 'SCENE · THE TAUNT',
+      mood: 'warm',
+      dialogue: `The happy shard cuts your palm. Blood drips, but the vision doesn't fade. You see a life you could have had — if you'd made different choices. But it's not real. It's a taunt.`,
+      choices: [
+        { text: 'Smash the shard', nextScene: 'endingFractured' },
+        { text: 'Hold on to the illusion', nextScene: 'endingIllusion' }
+      ]
+    },
+    grabDark: {
+      label: 'SCENE · THE VOID SHARD',
+      mood: 'void',
+      dialogue: `The dark shard is cold. It shows you the void — the space between thoughts. You feel yourself dissolving. The mirror's voice: "You wanted the truth? There is only emptiness."`,
+      choices: [
+        { text: 'Let go', nextScene: 'endingVoid' },
+        { text: 'Clutch tighter', nextScene: 'endingVoid' }
+      ]
+    },
+    stepBack: {
+      label: 'SCENE · THE COWARD',
+      mood: 'cold',
+      dialogue: `You step back. The mirror flickers. Your reflection returns — but its eyes are black. It mouths something: "Coward." The room grows colder.`,
+      choices: [
+        { text: 'Apologise', nextScene: 'endingGuilt' },
+        { text: 'Turn away', nextScene: 'endingStasis' }
+      ]
+    },
+    runFromRoom: {
+      label: 'SCENE · THE HALLWAY',
+      mood: 'cold',
+      dialogue: `You run, but the hallway stretches. You're running in place. The child's voice: "You can't outrun yourself." The floor turns to mirror. You fall.`,
+      choices: [
+        { text: 'Fall', nextScene: 'endingVoid' }
+      ]
+    },
+
+    // ---------- PATH 2 : WALLS ----------
+    searchWalls: {
+      label: 'SCENE · THE SEAM',
+      mood: 'cold',
+      dialogue: `You run your hands along the stone. It's seamless. But then — a slight seam. A hidden panel. Inside: a photograph of you, but the face is scratched out. On the back, a handwritten note: "I'm sorry."`,
+      choices: [
+        { text: 'Keep searching', nextScene: 'keepSearching' },
+        { text: 'Pocket the photo', nextScene: 'pocketPhoto' }
+      ]
+    },
+    keepSearching: {
+      label: 'SCENE · 3:33 AM',
+      mood: 'fractured',
+      dialogue: `Behind the panel, a tiny door — just big enough for a child. You crawl through. On the other side: a room full of clocks, all stopped at 3:33 AM. A voice: "Time is a loop. You've been here before."`,
+      choices: [
+        { text: 'Wind a clock', nextScene: 'windClock' },
+        { text: 'Break a clock', nextScene: 'breakClock' }
+      ]
+    },
+    windClock: {
+      label: 'SCENE · BACKWARDS',
+      mood: 'warm',
+      dialogue: `You wind the nearest clock. It ticks backwards. The room spins. You see flashes: a car crash, a hospital bed, a hand letting go. Then silence. "You chose to forget," the voice says. "But forgetting is a kind of death."`,
+      choices: [
+        { text: 'Remember', nextScene: 'rememberTrauma' },
+        { text: 'Forget again', nextScene: 'endingDenial' }
+      ]
+    },
+    breakClock: {
+      label: 'SCENE · BROKEN TIME',
+      mood: 'void',
+      dialogue: `You smash the clock. Gears fly. The other clocks begin to melt. The room dissolves into a grey void. You are nowhere. You are nothing. The voice: "You broke time. Now you are broken."`,
+      choices: [
+        { text: 'Accept', nextScene: 'endingVoid' }
+      ]
+    },
+    rememberTrauma: {
+      label: 'SCENE · THE RAIN',
+      mood: 'fractured',
+      dialogue: `It all comes back. The rain. The argument. The screech of tires. You were driving. You survived. They didn't. You've been running from this room your whole life — but the room was inside you.`,
+      choices: [
+        { text: 'Forgive yourself', nextScene: 'endingAcceptance' },
+        { text: 'Blame yourself', nextScene: 'endingGuilt' }
+      ]
+    },
+    pocketPhoto: {
+      label: 'SCENE · THE GARDEN',
+      mood: 'warm',
+      dialogue: `You put the photo in your pocket. The wall opens. You step into a garden — but the flowers are dead, the sky is grey. A figure waits on a bench. "You kept it," they say. It's the person from the photo. The one you lost.`,
+      choices: [
+        { text: '"I\'m sorry."', nextScene: 'endingForgiveness' },
+        { text: '"You\'re not real."', nextScene: 'endingDenial' }
+      ]
+    },
+
+    // ---------- PATH 3 : SCREAM ----------
+    scream: {
+      label: 'SCENE · ECHOES',
+      mood: 'fractured',
+      dialogue: `Your scream echoes. But it doesn't fade — it multiplies. Dozens of screams, all yours, all different ages. The room cracks. A door appears, but it's breathing.`,
+      choices: [
+        { text: 'Open the breathing door', nextScene: 'openBreathingDoor' },
+        { text: 'Scream again', nextScene: 'screamAgain' }
+      ]
+    },
+    openBreathingDoor: {
+      label: 'SCENE · THE RIBCAGE',
+      mood: 'void',
+      dialogue: `The door opens into a lung. You're inside a giant ribcage. The heart beats: <em>thump-thump</em>. A voice from everywhere: "This is the house of your guilt. Every room is a denial. Every choice, a symptom."`,
+      choices: [
+        { text: '"I want to leave."', nextScene: 'wantToLeave' },
+        { text: '"I deserve this."', nextScene: 'deserveThis' }
+      ]
+    },
+    wantToLeave: {
+      label: 'SCENE · THE WHOLE MIRROR',
+      mood: 'warm',
+      dialogue: `"Then face the mirror you've been avoiding." The ribcage opens. You're back in the first room. The mirror is there — but this time, your reflection is whole. It smiles sadly. "Ready?"`,
+      choices: [
+        { text: 'Nod', nextScene: 'endingAcceptance' },
+        { text: 'Shake your head', nextScene: 'endingStasis' }
+      ]
+    },
+    deserveThis: {
+      label: 'SCENE · BECOMING THE HOUSE',
+      mood: 'void',
+      dialogue: `"Then stay." The ribcage closes. You become part of the house. Your heartbeat joins the walls. You are the whisper now. You are the cold.`,
+      choices: [
+        { text: '...', nextScene: 'endingVoid' }
+      ]
+    },
+    screamAgain: {
+      label: 'SCENE · HOSPITAL CORRIDOR',
+      mood: 'fractured',
+      dialogue: `You scream until your throat bleeds. The room shatters like glass. You fall through the cracks — into a memory of a hospital corridor. A doctor says, "We did everything we could." You're holding a hand that's already cold.`,
+      choices: [
+        { text: 'Let go', nextScene: 'endingAcceptance' },
+        { text: 'Hold on', nextScene: 'endingGuilt' }
+      ]
+    },
+
+    // ---------- ENDINGS ----------
+    endingAcceptance: {
+      label: 'ENDING · ACCEPTANCE',
+      mood: 'warm',
+      dialogue: `You accept the truth. The guilt doesn't vanish — but it softens. The room fades into a warm light. You're still here, but you're not trapped. You are free to carry the weight. And that is enough.`,
+      isEnding: true,
+      endingTitle: 'ACCEPTANCE'
+    },
+    endingDenial: {
+      label: 'ENDING · DENIAL',
+      mood: 'cold',
+      dialogue: `You push it all away. The room rebuilds itself. The mirror reforms. You'll be back here again. You always are. Denial is a circle.`,
+      isEnding: true,
+      endingTitle: 'DENIAL'
+    },
+    endingStasis: {
+      label: 'ENDING · STASIS',
+      mood: 'cold',
+      dialogue: `You remain. The cold seeps into your bones. The mirror shows nothing. You are the ghost in the house of mirrors. Forever waiting. Forever still.`,
+      isEnding: true,
+      endingTitle: 'STASIS'
+    },
+    endingFractured: {
+      label: 'ENDING · FRACTURE',
+      mood: 'fractured',
+      dialogue: `You smash the shard. The illusion breaks, but so do you. Your mind fractures into a thousand pieces. Each piece lives a different life. None of them are real.`,
+      isEnding: true,
+      endingTitle: 'FRACTURE'
+    },
+    endingIllusion: {
+      label: 'ENDING · ILLUSION',
+      mood: 'warm',
+      dialogue: `You hold the illusion tight. The happy life plays on. But it's hollow. You smile, but you don't feel it. The mirror whispers: "Beautiful, isn't it?" You nod. You never leave.`,
+      isEnding: true,
+      endingTitle: 'ILLUSION'
+    },
+    endingVoid: {
+      label: 'ENDING · VOID',
+      mood: 'void',
+      dialogue: `The void takes you. There is no pain. No memory. No self. Just the endless, quiet dark. You are gone. But maybe you were never here at all.`,
+      isEnding: true,
+      endingTitle: 'VOID'
+    },
+    endingGuilt: {
+      label: 'ENDING · GUILT',
+      mood: 'void',
+      dialogue: `The guilt consumes you. It wraps around your heart like barbed wire. You relive the moment over and over. The room is your punishment. You never leave.`,
+      isEnding: true,
+      endingTitle: 'GUILT'
+    },
+    endingForgiveness: {
+      label: 'ENDING · FORGIVENESS',
+      mood: 'warm',
+      dialogue: `"I forgive you," they say. The garden blooms. The sky clears. You cry — not from sadness, but from release. The house dissolves. You wake up. Finally awake.`,
+      isEnding: true,
+      endingTitle: 'FORGIVENESS'
+    }
+  };
+
+  // ---------- DOM refs ----------
+  const graphicPanel   = document.getElementById('graphicPanel');
+  const dialogueEl     = document.getElementById('dialogueText');
+  const choicesEl      = document.getElementById('choicesContainer');
+  const endingArea     = document.getElementById('endingArea');
+  const sceneLabelEl   = document.getElementById('sceneLabel');
+
+  let typeTimer = null;
+
+  // ---------- Mood updater ----------
+  function setMood(mood) {
+    graphicPanel.setAttribute('data-mood', mood || 'cold');
+  }
+
+  // ---------- Typewriter effect ----------
+  function typewriter(el, html, speed = 18) {
+    if (typeTimer) clearTimeout(typeTimer);
+    el.innerHTML = '';
+
+    // Parse HTML into a series of tokens (tags + text chars)
+    // Simpler approach: use a placeholder div and reveal via character count
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+
+    // Build a flat array of nodes we can reveal progressively
+    const tokens = [];
+    (function walk(node) {
+      if (node.nodeType === 3) {
+        for (const ch of node.textContent) {
+          tokens.push({ type: 'char', char: ch });
+        }
+      } else if (node.nodeType === 1) {
+        tokens.push({ type: 'open', tag: node.tagName.toLowerCase(), attrs: node.attributes });
+        node.childNodes.forEach(walk);
+        tokens.push({ type: 'close', tag: node.tagName.toLowerCase() });
+      }
+    })(temp);
+
+    let idx = 0;
+    let currentOpen = []; // stack of open tags
+    let buffer = '';
+
+    function step() {
+      if (idx >= tokens.length) {
+        el.innerHTML = html;
+        return;
+      }
+      const t = tokens[idx++];
+
+      if (t.type === 'char') {
+        buffer += t.char;
+      } else if (t.type === 'open') {
+        let attrStr = '';
+        for (const a of t.attrs) attrStr += ` ${a.name}="${a.value}"`;
+        buffer += `<${t.tag}${attrStr}>`;
+        currentOpen.push(t.tag);
+      } else if (t.type === 'close') {
+        buffer += `</${t.tag}>`;
+        currentOpen.pop();
+      }
+
+      el.innerHTML = buffer + '▌';
+      typeTimer = setTimeout(step, speed);
+    }
+
+    step();
+  }
+
+  // ---------- Render a scene ----------
+  function renderScene(sceneId) {
+    const scene = scenes[sceneId];
+    if (!scene) {
+      console.error('Unknown scene:', sceneId);
+      return;
+    }
+
+    // Mood + label
+    setMood(scene.mood);
+    sceneLabelEl.textContent = scene.label || 'SCENE';
+
+    // Clear previous
+    choicesEl.innerHTML = '';
+    endingArea.style.display = 'none';
+    endingArea.innerHTML = '';
+
+    // Dialogue with typewriter
+    typewriter(dialogueEl, scene.dialogue, scene.isEnding ? 22 : 16);
+
+    // ---- ENDING SCENE ----
+    if (scene.isEnding) {
+      endingArea.style.display = 'block';
+
+      const badge = document.createElement('div');
+      badge.className = 'ending-badge';
+      badge.textContent = scene.endingTitle || 'ENDING';
+      endingArea.appendChild(badge);
+
+      const restartBtn = document.createElement('button');
+      restartBtn.className = 'restart-btn';
+      restartBtn.innerHTML = '⟲ &nbsp;Begin again';
+      restartBtn.addEventListener('click', () => renderScene('start'));
+      endingArea.appendChild(restartBtn);
+
+      // Some endings have a single "..." choice, render it too
+      if (scene.choices && scene.choices.length) {
+        scene.choices.forEach(choice => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          btn.textContent = choice.text;
+          btn.addEventListener('click', () => {
+            if (choice.nextScene) renderScene(choice.nextScene);
+          });
+          choicesEl.appendChild(btn);
+        });
+      }
+      return;
+    }
+
+    // ---- NORMAL SCENE ----
+    if (scene.choices && scene.choices.length) {
+      scene.choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = choice.text;
+        btn.addEventListener('click', () => {
+          if (choice.nextScene && scenes[choice.nextScene]) {
+            renderScene(choice.nextScene);
+          } else {
+            console.warn('Invalid nextScene:', choice.nextScene);
+          }
+        });
+        choicesEl.appendChild(btn);
+      });
+    }
+  }
+
+  // ---------- Boot ----------
+  renderScene('start');
+})();
+</script>
+</body>
+</html>
